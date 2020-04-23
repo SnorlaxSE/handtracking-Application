@@ -1,0 +1,5 @@
+tesnorflow==1.15
+pyqt5==5.9
+opencv-python
+qdarkstyle
+ffmpeg

@@ -81,6 +81,8 @@ def pick_predict_frame_sections(prediction_structure_list, frame_list, normal_fr
                 if start_frame_list == []:
                     start_frame_list.append(frame_list[i])
                     continue
+                if i == 0:
+                    continue
                 end_frame_list.append(frame_list[i-1])
                 start_frame_list.append(frame_list[i])
                 frame_gap_list.append(frame_gap)
@@ -93,12 +95,13 @@ def pick_predict_frame_sections(prediction_structure_list, frame_list, normal_fr
         if i == 0:  
             start_frame_list.append(current_frame)
             print("{} as start frame.".format(current_frame))
-
+            continue
+            
         if i == len(prediction_structure_list) -1 :
             end_frame_list.append(current_frame)
             print('>'*5)
             print("{} as end frame.".format(current_frame))
-            pass
+            continue
 
         if frame_gap > normal_frame_gap_threshold:
             end_frame_list.append(frame_list[i-1])
@@ -160,9 +163,9 @@ def adaptive_frame_sections(start_frame_list, end_frame_list, frame_gap_list, du
     for i in range(len(adaptive_start_frame_list)):
         adaptive_duration_list.append(float(adaptive_end_frame_list[i]) - float(adaptive_start_frame_list[i]))
         print("({}) {} {} {} {}".format(i+1, adaptive_start_frame_list[i], adaptive_end_frame_list[i], adaptive_end_frame_list[i]-adaptive_start_frame_list[i], adaptive_duration_list[i]))
-        if float(adaptive_end_frame_list[i]) - float(adaptive_start_frame_list[i]) < 1 * fps:
+        if float(adaptive_end_frame_list[i]) - float(adaptive_start_frame_list[i]) < (1 * fps):
             print('-'*20, '1')
-        if float(adaptive_end_frame_list[i]) - float(adaptive_start_frame_list[i]) > 5 * fps:
+        if float(adaptive_end_frame_list[i]) - float(adaptive_start_frame_list[i]) > (5 * fps):
             print('-'*20, '5')
 
     return adaptive_start_frame_list, adaptive_end_frame_list, adaptive_duration_list
@@ -322,9 +325,9 @@ def post_adapt(prediction_structure_list, adaptive_start_frame_list, adaptive_en
 
     for i in range(len(post_adapt_start_frame_list)):
         print("({}) {} {} {}".format(i+1, post_adapt_start_frame_list[i], post_adapt_end_frame_list[i], post_adapt_end_frame_list[i]-post_adapt_start_frame_list[i]), post_adapt_duration_frame_list[i])
-        if float(post_adapt_end_frame_list[i]) - float(post_adapt_start_frame_list[i]) < 1:
+        if float(post_adapt_end_frame_list[i]) - float(post_adapt_start_frame_list[i]) < (1 * fps):
             print('-'*30, '1')
-        if float(post_adapt_end_frame_list[i]) - float(post_adapt_start_frame_list[i]) > 5:
+        if float(post_adapt_end_frame_list[i]) - float(post_adapt_start_frame_list[i]) > (5 * fps):
             print('-'*30, '5')
 
     return post_adapt_start_frame_list, post_adapt_end_frame_list, post_adapt_duration_frame_list
@@ -335,7 +338,7 @@ def cut_video(video_file, cut_video_dir, post_adapt_start_frame_list, post_adapt
     for i in range(len(post_adapt_duration_frame_list)):
         start_ss = float(post_adapt_start_frame_list[i])/fps
         duration = float(post_adapt_end_frame_list[i])/fps - start_ss
-        result_filename = video_file.split('/')[-1].split('.')[0] + '_cut_{}.mp4'.format(i+1)
+        result_filename = video_file.split('/')[-1].split('.')[0] + '_cut_{}.mp4'.format(i)
         result_file = os.path.join(cut_video_dir, result_filename)
 
         if os.path.isfile(result_file):

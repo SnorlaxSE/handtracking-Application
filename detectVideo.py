@@ -28,7 +28,7 @@ class VideoBox(QWidget):
     STATUS_PLAYING = 1
     STATUS_PAUSE = 2
 
-    def __init__(self, video_url="", cutVideoDir="", fps=25):
+    def __init__(self, video_url="src/00190.MTS", cutVideoDir="", fps=25):
 
         super(VideoBox, self).__init__()
         # self.frame = []  # 存图片
@@ -46,10 +46,8 @@ class VideoBox(QWidget):
 
         self.start_time = datetime.datetime.now()
 
-        cap = cv2.VideoCapture(self.video_url)
-        cap.set(cv2.CAP_PROP_FRAME_WIDTH, args.width)
-        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, args.height)
-        self.im_width, self.im_height = (cap.get(3), cap.get(4))
+        self.fps, size, total_frames, rate, total_duration = get_video_info(self.video_url)
+        self.im_width, self.im_height = size[0], size[1]
 
         # max number of hands we want to detect/track
         self.num_hands_detect = 2
@@ -137,7 +135,7 @@ class VideoBox(QWidget):
         """
         if self.video_url == "":
             info = QMessageBox.information(self,'information', 'Choose a video to show.', QMessageBox.Yes | QMessageBox.Yes)
-            self.video_url, _ = QFileDialog.getOpenFileName(self, "Open", "", "*.mp4;;*.avi;;All Files(*)")
+            self.video_url, _ = QFileDialog.getOpenFileName(self, "Open", "", "*.MTS;;*.mp4;;*.avi;;All Files(*)")
 
         if self.video_url != "" and os.path.isfile(self.video_url):  # “”为用户取消
 
@@ -274,14 +272,13 @@ class VideoBox(QWidget):
         print("len(frame_list): ", len(frame_list))
 
         fps, size, total_frames, rate, total_duration = get_video_info(self.srcVideo)  # size: (width, height)
-        im_width, im_height = size[0], size[1]
-        
+
         normal_frame_gap_threshold = 1 * fps  # 正常动作间隔
         short_frame_gap_threshold = 0.5 * fps  # 较短动作间隔
         post_frame_gap_threshold = 0.6 * fps
         post_action_frame_threshold = 3.5 * fps
             
-        start_frame_list, end_frame_list, frame_gap_list, duration_list = pick_predict_frame_sections(prediction_structure_list, frame_list, normal_frame_gap_threshold, short_frame_gap_threshold, im_width, im_height, blackBorder=False)
+        start_frame_list, end_frame_list, frame_gap_list, duration_list = pick_predict_frame_sections(prediction_structure_list, frame_list, normal_frame_gap_threshold, short_frame_gap_threshold, self.im_width, self.im_height, blackBorder=False)
         print('*'*10)
         adaptive_start_frame_list, adaptive_end_frame_list, adaptive_duration_list = adaptive_frame_sections(start_frame_list, end_frame_list, frame_gap_list, duration_list, normal_frame_gap_threshold, total_frames, fps)
         print('**'*10)
@@ -308,34 +305,40 @@ class VideoBox(QWidget):
         """ 
         Slot function to capture frame and process it
         """
-        
+
         if self.playCapture.isOpened():
             ret, frame = self.playCapture.read()
             if ret:
 
+                # crop frame
+                print("frame: ", frame.shape, type(frame))
+                frame = frame[:int(frame.shape[0]*0.88),:,:] # (height, width, bytesPerComponent)
+                print("frame: ", frame.shape, type(frame))
+
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
                 boxes, scores = detector_utils.detect_objects(frame, detection_graph, sess)
 
                 # Calculate Frames per second (FPS)
                 self.num_frames += 1
                 elapsed_time = (datetime.datetime.now() - self.start_time).total_seconds()
-                fps = self.num_frames / elapsed_time
+                # fps = self.num_frames / elapsed_time
 
                 score_index = np.where(scores>=args.score_thresh)
                 self.scores_list.append({self.num_frames:{'scores':list(scores[scores>=args.score_thresh]), 'boxes':list(boxes[score_index]) } })
 
-                # Display FPS on frame
-                # if (args.fps > 0):
-                    # detector_utils.draw_fps_on_image("FPS : " + str(int(fps)), frame)
-
                 height, width, bytesPerComponent = frame.shape
+                self.im_height, self.im_width = height, width   # update crop size 
                 bytesPerLine = bytesPerComponent * width
+
+                # print(frame.data,  width, height, bytesPerLine, QImage.Format_RGB888)
                 q_image = QImage(frame.data,  width, height, bytesPerLine,
                                 QImage.Format_RGB888).scaled(self.frameLabel.width(), self.frameLabel.height())
+
+                # q_image = QImage(frame.data,  width, height, bytesPerLine, QImage.Format_RGB888)
                 self.frameLabel.setPixmap(QPixmap.fromImage(q_image))
                 
                 print("frames processed: ", self.num_frames, "elapsed time: ", elapsed_time, " scores: ", scores[score_index])  # (100,)
-                # self.stateTextEdit.append("frames processed: {}  elapsed time: {}  scores: {}".format( self.num_frames, elapsed_time, str(scores[score_index])[1:-1]))  # (100,)
                 score =  str(scores[score_index][:2])[1:-1]
                 if score == '':
                     score = "0"

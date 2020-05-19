@@ -48,6 +48,7 @@ $ python detectVideo.py
 
 ![](./src/README/cut-Completed.png)
 
+裁剪完毕后，可在上述选择的视频输出文件夹中查看裁剪的片段视频
 
 #### 相关参考
 

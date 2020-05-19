@@ -41,6 +41,7 @@ $ python detectVideo.py
 ![](./src/README/cut-1.png)
 
 * 视频裁剪中... (稍作等待)
+
 ![](./src/README/wait-for-cut.png)
 
 * 裁剪完成

@@ -12,6 +12,8 @@ $ cd handtracking-Application/
 $ pip install -r requirement.txt
 ```
 
+* 如若是Windows操作系统，需手动安装FFMPEG，可参考[ffmpeg Windows安装及命令使用](https://blog.csdn.net/kaikai136412162/article/details/80746961)
+
 3. Startup
 
 ![](https://cdn.jsdelivr.net/gh/SnorlaxSE/Photo-CDN@master/github/handtracking-Application/Interface.png)

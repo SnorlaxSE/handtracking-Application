@@ -28,13 +28,14 @@ class VideoBox(QWidget):
     STATUS_PLAYING = 1
     STATUS_PAUSE = 2
 
-    def __init__(self, video_url="src/00190.MTS", cutVideoDir="", fps=25):
+    def __init__(self, video_url="", cutVideoDir="", crop=False, fps=25):
 
         super(VideoBox, self).__init__()
         # self.frame = []  # 存图片
         self.playCaptureState = False
         self.video_url = video_url
         self.status = self.STATUS_INIT  # 0: init 1:playing 2: pause
+        self.crop=crop  # 如果视频中放下的手仍出现在视野中，crop=True
         self.fps = fps
         self.playCapture = cv2.VideoCapture()
 
@@ -46,8 +47,8 @@ class VideoBox(QWidget):
 
         self.start_time = datetime.datetime.now()
 
-        self.fps, size, total_frames, rate, total_duration = get_video_info(self.video_url)
-        self.im_width, self.im_height = size[0], size[1]
+        # self.fps, size, total_frames, rate, total_duration = get_video_info(self.video_url)
+        # self.im_width, self.im_height = size[0], size[1]
 
         # max number of hands we want to detect/track
         self.num_hands_detect = 2
@@ -311,9 +312,10 @@ class VideoBox(QWidget):
             if ret:
 
                 # crop frame
-                print("frame: ", frame.shape, type(frame))
-                frame = frame[:int(frame.shape[0]*0.88),:,:] # (height, width, bytesPerComponent)
-                print("frame: ", frame.shape, type(frame))
+                print("frame: ", frame.shape)
+                if self.crop:
+                    frame = frame[:int(frame.shape[0]*0.88),:,:] # (height, width, bytesPerComponent)
+                    print("frame: ", frame.shape, type(frame))
 
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
@@ -356,7 +358,7 @@ class VideoBox(QWidget):
 
         else:
             self.stateTextEdit.append("open file or capturing device error, try again.")
-            Warming = QMessageBox.warning(self, "Warming", "open file or capturing device error, try again.", QMessageBox.Yes)
+            # Warming = QMessageBox.warning(self, "Warming", "open file or capturing device error, try again.", QMessageBox.Yes)
 
 
 if __name__ == "__main__":
@@ -423,6 +425,6 @@ if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     # my = VideoBox(video_url="/Users/snorlaxse/Documents/Github/handtracking/src/00005_h264_cut_32.mp4", cutVideoDir="VideoOutputs")
-    my = VideoBox()
+    my = VideoBox(video_url="", cutVideoDir="")
     my.show()
     sys.exit(app.exec_())

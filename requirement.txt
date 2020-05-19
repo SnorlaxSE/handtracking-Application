@@ -1,5 +1,6 @@
-tesnorflow==1.15
+tensorflow==1.15
+setuptools>=41.0.0
 pyqt5==5.9
-opencv-python
 qdarkstyle
 ffmpeg
+opencv-python

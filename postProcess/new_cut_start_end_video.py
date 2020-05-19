@@ -338,7 +338,7 @@ def cut_video(video_file, cut_video_dir, post_adapt_start_frame_list, post_adapt
     for i in range(len(post_adapt_duration_frame_list)):
         start_ss = float(post_adapt_start_frame_list[i])/fps
         duration = float(post_adapt_end_frame_list[i])/fps - start_ss
-        result_filename = video_file.split('/')[-1].split('.')[0] + '_cut_{}.mp4'.format(i)
+        result_filename = os.path.basename(video_file).split('.')[0] + '_cut_{}.mp4'.format(i)
         result_file = os.path.join(cut_video_dir, result_filename)
 
         if os.path.isfile(result_file):

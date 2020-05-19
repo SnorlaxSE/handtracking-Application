@@ -215,7 +215,6 @@ class VideoBox(QWidget):
         self.pauseButton.setEnabled(False)
         self.stopButton.setEnabled(False)
         self.cutButton.setEnabled(True)
-        self.cutVideoDir = ""
 
 
     def slotCut(self):
@@ -229,21 +228,24 @@ class VideoBox(QWidget):
             QMessageBox.information(self,'information',"Detection Uncompleted.", QMessageBox.Yes | QMessageBox.Yes)
             return
 
-        if self.cutVideoDir == '':
-            info = QMessageBox.information(self,'information',"Choose Output Folder.", QMessageBox.Yes | QMessageBox.Yes)
-            self.cutVideoDir = QtWidgets.QFileDialog.getExistingDirectory(self, "getExistingDirectory", "./") 
-            if self.cutVideoDir == '':
-                print("self.cutVideoDir == '': ", self.cutVideoDir == '')
-                info = QMessageBox.information(self,'information',"The Output Folder Unselected.", QMessageBox.Yes | QMessageBox.Yes)
-                return
+        # if self.cutVideoDir == '':
+        #     info = QMessageBox.information(self,'information',"Choose Output Folder.", QMessageBox.Yes | QMessageBox.Yes)
+        #     self.cutVideoDir = QtWidgets.QFileDialog.getExistingDirectory(self, "getExistingDirectory", "./") 
+        #     if self.cutVideoDir == '':
+        #         print("self.cutVideoDir == '': ", self.cutVideoDir == '')
+        #         info = QMessageBox.information(self,'information',"The Output Folder Unselected.", QMessageBox.Yes | QMessageBox.Yes)
+        #         return
 
-        print("self.cutVideoDir: ", self.cutVideoDir)
+        # print("self.cutVideoDir: ", self.cutVideoDir)
+
+        video_name = os.path.basename(self.srcVideo)
+
+        self.cutVideoDir = os.path.join('outputs', video_name)
 
         if not os.path.exists(self.cutVideoDir):
             os.makedirs(self.cutVideoDir)
 
-        video_name = self.srcVideo.split('/')[-1]
-        outputDir = self.cutVideoDir.split('/')[-1]
+        outputDir = os.path.basename(self.cutVideoDir)
         
         self.frameLabel.setPixmap(self.init_image)
         self.playButton.setText("Wait")

@@ -419,12 +419,18 @@ if __name__ == "__main__":
         type=int,
         default=5,
         help='Size of the queue.')
+    parser.add_argument(
+        '-crop',
+        '--crop',
+        type=bool,
+        default=False,
+        help='wether crop or not')
     args = parser.parse_args()
 
 
     app = QtWidgets.QApplication(sys.argv)
     app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     # my = VideoBox(video_url="/Users/snorlaxse/Documents/Github/handtracking/src/00005_h264_cut_32.mp4", cutVideoDir="VideoOutputs")
-    my = VideoBox(video_url="", cutVideoDir="")
+    my = VideoBox(video_url="", cutVideoDir="", crop=args.crop)
     my.show()
     sys.exit(app.exec_())

@@ -19,6 +19,11 @@ $ pip install -r requirement.txt
 $ python detectVideo.py
 ```
 
+* 如若视频中演示者放下的手仍出现在视野中，则执行下述指令
+```shell
+$ python detectVideo.py  --crop true
+```
+
 4. Choose the Video
 
 ![](./src/README/VideoChosen.png)

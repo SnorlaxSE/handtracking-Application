@@ -9,7 +9,7 @@ $ git clone https://github.com/SnorlaxSE/handtracking-Application.git
 2. Dependency
 ```shell
 $ cd handtracking-Application/
-$ pip install -r requirement
+$ pip install -r requirement.txt
 ```
 
 3. Startup

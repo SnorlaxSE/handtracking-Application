@@ -234,6 +234,7 @@ class VideoBox(QWidget):
             self.cutVideoDir = QtWidgets.QFileDialog.getExistingDirectory(self, "getExistingDirectory", "./") 
             if self.cutVideoDir == '':
                 print("self.cutVideoDir == '': ", self.cutVideoDir == '')
+                info = QMessageBox.information(self,'information',"The Output Folder Unselected.", QMessageBox.Yes | QMessageBox.Yes)
                 return
 
         print("self.cutVideoDir: ", self.cutVideoDir)

@@ -32,7 +32,7 @@ a) 1-Installation-conda.bat
 
 正在安装Anaconda，大致需耗时1.5min （稍作等待） ↑
 
-![](https://cdn.jsdelivr.net/gh/SnorlaxSE/Photo-CDN@master/github/handtracking-Application/slient_install_anaconda_completed.png.png)
+![](https://cdn.jsdelivr.net/gh/SnorlaxSE/Photo-CDN@master/github/handtracking-Application/slient_install_anaconda_completed.png)
 
 出现“请按任意键继续...”，说明`1-Installation-conda.bat`指令已执行完毕，此时关闭命令行界面即可
 

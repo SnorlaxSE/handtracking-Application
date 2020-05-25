@@ -228,19 +228,19 @@ class VideoBox(QWidget):
             QMessageBox.information(self,'information',"Detection Uncompleted.", QMessageBox.Yes | QMessageBox.Yes)
             return
 
-        # if self.cutVideoDir == '':
-        #     info = QMessageBox.information(self,'information',"Choose Output Folder.", QMessageBox.Yes | QMessageBox.Yes)
-        #     self.cutVideoDir = QtWidgets.QFileDialog.getExistingDirectory(self, "getExistingDirectory", "./") 
-        #     if self.cutVideoDir == '':
-        #         print("self.cutVideoDir == '': ", self.cutVideoDir == '')
-        #         info = QMessageBox.information(self,'information',"The Output Folder Unselected.", QMessageBox.Yes | QMessageBox.Yes)
-        #         return
+        if self.cutVideoDir == '':
+            info = QMessageBox.information(self,'information',"Choose Output Folder.", QMessageBox.Yes | QMessageBox.Yes)
+            self.cutVideoDir = QtWidgets.QFileDialog.getExistingDirectory(self, "getExistingDirectory", "./") 
+            if self.cutVideoDir == '':
+                print("self.cutVideoDir == '': ", self.cutVideoDir == '')
+                info = QMessageBox.information(self,'information',"The Output Folder Unselected.", QMessageBox.Yes | QMessageBox.Yes)
+                return
 
-        # print("self.cutVideoDir: ", self.cutVideoDir)
+        print("self.cutVideoDir: ", self.cutVideoDir)
 
         video_name = os.path.basename(self.srcVideo)
 
-        self.cutVideoDir = os.path.join('outputs', video_name)
+        # self.cutVideoDir = os.path.join('outputs', video_name)
 
         if not os.path.exists(self.cutVideoDir):
             os.makedirs(self.cutVideoDir)

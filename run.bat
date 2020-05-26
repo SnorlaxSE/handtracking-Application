@@ -7,6 +7,6 @@ cd %~dp0
 CALL conda activate handtrack
 
 :: run 
-python detectVideo.py
+start /b python detectVideo.py
 
 pause

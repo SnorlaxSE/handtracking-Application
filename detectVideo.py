@@ -54,8 +54,8 @@ class VideoBox(QWidget):
         self.num_hands_detect = 2
 
         desktop = QApplication.desktop()
-        print("屏幕宽:" + str(desktop.width()))
-        print("屏幕高:" + str(desktop.height()))
+        # print("屏幕宽:" + str(desktop.width()))
+        # print("屏幕高:" + str(desktop.height()))
         
         # 窗口框
         win_height = desktop.height() / 1.6

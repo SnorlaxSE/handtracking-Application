@@ -53,26 +53,36 @@ class VideoBox(QWidget):
         # max number of hands we want to detect/track
         self.num_hands_detect = 2
 
+        desktop = QApplication.desktop()
+        print("屏幕宽:" + str(desktop.width()))
+        print("屏幕高:" + str(desktop.height()))
+        
         # 窗口框
-        self.resize(1080, 650)
-        self.setFixedSize(1080, 650)
+        win_height = desktop.height() / 1.6
+        win_width = desktop.width() / 1.6
+        self.resize(win_width, win_height)  # width height
+        self.setFixedSize(win_width, win_height)
         self.setWindowTitle("Hand Detection")
-
-        # 帧label
-        self.frameLabel = QLabel(self)
-        self.frameLabel.setFixedSize(720, 540)  # width height
-        # self.frameLabel.move(10, 10)
-        self.init_image = QPixmap("src/cat.jpeg").scaled(self.frameLabel.width(), self.frameLabel.height())
-        self.frameLabel.setPixmap(self.init_image)
 
         # 状态label
         self.stateTextEdit = QTextEdit(self)
         self.stateTextEdit.setText("Waiting for detectiong...")
         self.stateTextEdit.setAlignment(Qt.AlignLeft)
-        self.stateTextEdit.setFixedSize(300, 600)  # width height
+        stateTextEdit_height = win_height / 1.1
+        stateTextEdit_width = stateTextEdit_height / 2
+        self.stateTextEdit.setFixedSize(stateTextEdit_width, stateTextEdit_height)  # width height
         # self.stateTextEdit.move(50, 500)
         self.stateTextEdit.setFocusPolicy(QtCore.Qt.NoFocus)
         self.stateTextEdit.moveCursor(QTextCursor.End)
+
+        # 帧label
+        frameLabel_width = win_width - stateTextEdit_width - 50 
+        frameLabel_height = win_height / 1.2
+        self.frameLabel = QLabel(self)
+        self.frameLabel.setFixedSize(frameLabel_width, frameLabel_height)  # width height
+        # self.frameLabel.move(10, 10)
+        self.init_image = QPixmap("src/cat.jpeg").scaled(self.frameLabel.width(), self.frameLabel.height())
+        self.frameLabel.setPixmap(self.init_image)
 
         # 开启视频按键
         self.playButton = QPushButton(self)
@@ -106,9 +116,9 @@ class VideoBox(QWidget):
         self.cutButton.clicked.connect(self.slotCut)
 
         frameBox = QVBoxLayout()
-        frameBox.addStretch()
+        # frameBox.addStretch()
         frameBox.addWidget(self.frameLabel)
-        frameBox.addStretch()
+        # frameBox.addStretch()
 
         controlBox = QHBoxLayout()
         controlBox.addWidget(self.playButton)
@@ -367,73 +377,22 @@ class VideoBox(QWidget):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '-sth',
-        '--scorethreshold',
-        dest='score_thresh',
-        type=float,
-        default=0.2,
-        help='Score threshold for displaying bounding boxes')
-    parser.add_argument(
-        '-fps',
-        '--fps',
-        dest='fps',
-        type=int,
-        default=1,
-        help='Show FPS on detection/display visualization')
-    parser.add_argument(
-        '-src',
-        '--source',
-        dest='video_source',
-        default="",
-        help='Device index of the camera.')
-    parser.add_argument(
-        '-wd',
-        '--width',
-        dest='width',
-        type=int,
-        default=720,
-        help='Width of the frames in the video stream.')
-    parser.add_argument(
-        '-ht',
-        '--height',
-        dest='height',
-        type=int,
-        default=540,
-        help='Height of the frames in the video stream.')
-    parser.add_argument(
-        '-ds',
-        '--display',
-        dest='display',
-        type=int,
-        default=1,
-        help='Display the detected images using OpenCV. This reduces FPS')
-    parser.add_argument(
-        '-num-w',
-        '--num-workers',
-        dest='num_workers',
-        type=int,
-        default=4,
-        help='Number of workers.')
-    parser.add_argument(
-        '-q-size',
-        '--queue-size',
-        dest='queue_size',
-        type=int,
-        default=5,
-        help='Size of the queue.')
-    parser.add_argument(
-        '-crop',
-        '--crop',
-        type=bool,
-        default=False,
-        help='wether crop or not')
+    parser.add_argument('-sth', '--scorethreshold', dest='score_thresh', type=float, default=0.2, help='Score threshold for displaying bounding boxes')
+    parser.add_argument('-fps', '--fps', dest='fps', type=int, default=1, help='Show FPS on detection/display visualization')
+    parser.add_argument( '-src', '--source', dest='video_source', default="", help='Device index of the camera.')
+    parser.add_argument('-wd', '--width',dest='width', type=int, default=720, help='Width of the frames in the video stream.')
+    parser.add_argument( '-ht', '--height', dest='height', type=int, default=540, help='Height of the frames in the video stream.')
+    parser.add_argument('-ds', '--display', dest='display', type=int, default=1, help='Display the detected images using OpenCV. This reduces FPS')
+    parser.add_argument('-num-w', '--num-workers', dest='num_workers', type=int, default=4, help='Number of workers.')
+    parser.add_argument( '-q-size', '--queue-size', dest='queue_size', type=int, default=5, help='Size of the queue.')
+    parser.add_argument('-crop', '--crop', type=bool, default=False, help='wether crop or not')
     args = parser.parse_args()
-
 
     app = QtWidgets.QApplication(sys.argv)
     app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
-    # my = VideoBox(video_url="/Users/snorlaxse/Documents/Github/handtracking/src/00005_h264_cut_32.mp4", cutVideoDir="VideoOutputs")
+    app.setWindowIcon(QIcon('./src/Gear.ico'))
+
     my = VideoBox(video_url="", cutVideoDir="", crop=args.crop)
     my.show()
     sys.exit(app.exec_())
+

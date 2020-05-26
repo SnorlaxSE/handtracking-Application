@@ -22,7 +22,11 @@ $ pip install -r requirement.txt
 
 #### Windows
 
-* 前记：执行下述命令前，可随意将`handtracking-Application.zip`压缩包解压生成的文件（`handtracking-Application`文件夹）移动至 `D盘`下任一位置，确认`handtracking-Application`文件夹已放置于D盘下`合适的位置`
+* 前记：
+
+i. 执行下述命令前，可随意将`handtracking-Application.zip`压缩包解压生成的文件（`handtracking-Application`文件夹）移动至 `D盘`下任一位置，确认`handtracking-Application`文件夹已放置于D盘下`合适的位置`;
+ii. 此Repository中未放置Anaconda安装包（占用存储空间过大），请自行在[Anaconda官网下载](https://www.anaconda.com/products/individual) Windows 64-Bit Graphical Installer，并放置于`./software`文件夹下.
+
 
 依次双击`1-Installation-conda.bat`; `2-Installation-env.bat`; `3-Installation-pkg.bat`; 
 
@@ -98,9 +102,9 @@ $ python detectVideo.py  --crop true
 ![](https://cdn.jsdelivr.net/gh/SnorlaxSE/Photo-CDN@master/github/handtracking-Application/win_run.png)
 
 可选操作：
-1）右键`run.bat`，点击"创建快捷方式"  
-2）移动生成的快捷方式至合适的位置，如`桌面`  
-3）重命名快捷方式为合适的名称，如`handtrack-Application.bat`
+1）右键`run.bat`，点击"创建快捷方式"；
+2）移动生成的快捷方式至合适的位置，如`桌面`；
+3）重命名快捷方式为合适的名称，如`handtrack-Application.bat`；
 4）双击`handtrack-Application.bat`
 
 ### Usage

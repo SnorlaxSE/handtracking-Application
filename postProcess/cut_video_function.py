@@ -16,7 +16,7 @@ def get_video_info(video_path):
     # 时长
     rate = videoCapture.get(5)
     total_duration = total_frames/rate
-    print("fps=", int(fps), "size=", size, "total_frames=", int(total_frames), "rate=", rate, "total_duration=", total_duration)
+    # print("fps=", int(fps), "size=", size, "total_frames=", int(total_frames), "rate=", rate, "total_duration=", total_duration)
     
     return fps, size, total_frames, rate, total_duration
 

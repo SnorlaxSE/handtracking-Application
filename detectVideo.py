@@ -18,7 +18,6 @@ import pdb
 
 from postProcess.new_cut_start_end_video import *
 
-
  
 detection_graph, sess = detector_utils.load_inference_graph()
 
@@ -28,15 +27,13 @@ class VideoBox(QWidget):
     STATUS_PLAYING = 1
     STATUS_PAUSE = 2
 
-    def __init__(self, video_url="", cutVideoDir="", crop=False, fps=25):
+    def __init__(self, video_url="", cutVideoDir="", score_thresh=0.5, crop=False, fps=25):
 
         super(VideoBox, self).__init__()
-        # self.frame = []  # 存图片
         self.playCaptureState = False
         self.video_url = video_url
-        self.status = self.STATUS_INIT  # 0: init 1:playing 2: pause
+        self.status = self.STATUS_INIT  # 0: INIT 1:PLAYING 2: PAUSE
         self.crop=crop  # 如果视频中放下的手仍出现在视野中，crop=True
-        self.fps = fps
         self.playCapture = cv2.VideoCapture()
 
         self.scores_list = []
@@ -44,10 +41,10 @@ class VideoBox(QWidget):
         self.num_frames = 0
         self.srcVideo = ""
         self.cutVideoDir = cutVideoDir
-
+        self.score_thresh = score_thresh
         self.start_time = datetime.datetime.now()
 
-        # self.fps, size, total_frames, rate, total_duration = get_video_info(self.video_url)
+        self.fps = fps
         # self.im_width, self.im_height = size[0], size[1]
 
         # max number of hands we want to detect/track
@@ -145,23 +142,32 @@ class VideoBox(QWidget):
         Slot function to start the progamme
         """
         if self.video_url == "":
-            info = QMessageBox.information(self,'information', 'Choose a video to show.', QMessageBox.Yes | QMessageBox.Yes)
-            self.video_url, _ = QFileDialog.getOpenFileName(self, "Open", "", "*.MTS;;*.mp4;;*.avi;;All Files(*)")
+            info = QMessageBox.information(self,'information', 'Choose a video to Play.', QMessageBox.Yes | QMessageBox.Yes)
+            self.video_url, _ = QFileDialog.getOpenFileName(self, "Open", "", "*.mp4;;*.MTS;;*.avi;;All Files(*)")
 
-        if self.video_url != "" and os.path.isfile(self.video_url):  # “”为用户取消
+        if not self.video_url == "" and os.path.isfile(self.video_url):  # ""为用户点击取消（cancel）
 
-            # reset something
+            clothes_type, ok = QInputDialog.getText(self, 'Advanced', "演示者穿'短袖' or '长袖':")
+            print(clothes_type, ok)
+            if "长" in clothes_type:
+                self.score_thresh = 0.2
+            else:
+                self.score_thresh = 0.4
+
+            # Reset Something
             self.stateTextEdit.setText("Waiting for detectiong...")
             self.status = VideoBox.STATUS_INIT
 
             self.playCapture.open(self.video_url)
+            self.fps = get_video_info(self.video_url)[0]
+            # print("self.fps", self.fps)
             self.timer.start(1000/self.fps)  # 单位是毫秒，这点要注意,相当于时间每过xxx ms，timer的timeout()就会被触发一次
             self.timer.timeout.connect(self.showFrame)
             self.playCaptureState = True
             self.pauseButton.setEnabled(True)
             self.stopButton.setEnabled(True)
 
-            # reset something   （预防 pause 后 click 'open'）
+            # Reset Something   （预防 "pause" 后 click "open"）
             if self.scores_list != []:
                 self.scoresList = self.scores_list
             self.scores_list = []  
@@ -171,6 +177,9 @@ class VideoBox(QWidget):
 
  
     def slotPause(self):
+        """
+        点击"Pause" 触发的事件处理
+        """
         
         if self.status is VideoBox.STATUS_PAUSE or self.status is VideoBox.STATUS_INIT:
             # want to pause
@@ -189,8 +198,8 @@ class VideoBox(QWidget):
                        VideoBox.STATUS_PLAYING)[self.status]
 
     def slotStop(self):
-        """ 
-        Slot function to stop the programme
+        """
+        点击"Stop" 触发的事件处理
         """
         if self.playCaptureState:
             self.stateTextEdit.append("This video detection has been stopped.")
@@ -198,8 +207,8 @@ class VideoBox(QWidget):
             QMessageBox.information(self,'information',"This video detection has been stopped.", QMessageBox.Yes |  QMessageBox.Yes)
             
         else:
-            self.stateTextEdit.append("Please choose a video to show.")
-            Warming = QMessageBox.warning(self, "Warming", "Please choose a video to show.",QMessageBox.Yes)
+            self.stateTextEdit.append("Please choose a video to Play.")
+            Warming = QMessageBox.about(self, "About", "Please choose a video to show.")
 
 
     def playReset(self):
@@ -229,7 +238,7 @@ class VideoBox(QWidget):
 
     def slotCut(self):
         """ 
-        Slot function to cut the programme
+        点击"Cut" 触发的事件处理
 
         only call when click 'stop' or play complete 
         """
@@ -246,7 +255,7 @@ class VideoBox(QWidget):
                 info = QMessageBox.information(self,'information',"The Output Folder Unselected.", QMessageBox.Yes | QMessageBox.Yes)
                 return
 
-        print("self.cutVideoDir: ", self.cutVideoDir)
+        # print("self.cutVideoDir: ", self.cutVideoDir)
 
         video_name = os.path.basename(self.srcVideo)
 
@@ -254,9 +263,12 @@ class VideoBox(QWidget):
 
         if not os.path.exists(self.cutVideoDir):
             os.makedirs(self.cutVideoDir)
-
         outputDir = os.path.basename(self.cutVideoDir)
         
+        # Advanced Setting
+        # actionGap, ok = QInputDialog.getText(self, 'Advanced', '动作间隔（一般情况为1，单位为s）:')
+        # print(actionGap, ok)
+
         self.frameLabel.setPixmap(self.init_image)
         self.playButton.setText("Wait")
         self.playButton.setEnabled(False)
@@ -270,6 +282,14 @@ class VideoBox(QWidget):
         self.stateTextEdit.append("Now start to cut the video \n'{}'".format(video_name)) 
         QMessageBox.information(self, "information", "Now start to cut the video  {}. And the Outputs would save at '{}' Folder.".format(video_name, outputDir), QMessageBox.Yes)
 
+        import platform
+        if platform.system() == "Windows":
+            os.system(f"start explorer {self.cutVideoDir}")   
+        elif platform.system() == "Linux":
+            os.system(f"nautilus {self.cutVideoDir}")   
+        elif platform.system() == "Darwin":
+            os.system(f"open {self.cutVideoDir}")   
+        # print(platform.system())
 
         prediction_structure_list = []
         for frame_info_dict in self.scoresList:
@@ -282,17 +302,22 @@ class VideoBox(QWidget):
         for frame_info_dict in prediction_structure_list:
             for (frame_value, _) in frame_info_dict.items():
                 frame_list.append(frame_value)
-        print("len(prediction_structure_list): ", len(prediction_structure_list))
-        print("len(frame_list): ", len(frame_list))
+        # print("len(prediction_structure_list): ", len(prediction_structure_list))
+        # print("len(frame_list): ", len(frame_list))
 
         fps, size, total_frames, rate, total_duration = get_video_info(self.srcVideo)  # size: (width, height)
 
-        normal_frame_gap_threshold = 1 * fps  # 正常动作间隔
-        short_frame_gap_threshold = 0.5 * fps  # 较短动作间隔
-        post_frame_gap_threshold = 0.6 * fps
-        post_action_frame_threshold = 3.5 * fps
+        # try:
+        #     actionGap = float(actionGap)
+        # except:
+        #     actionGap = 1
+        actionGap = 1
+        normal_frame_gap_threshold = fps * actionGap  # 正常动作间隔
+        short_frame_gap_threshold = 0.5 * fps * actionGap  # 较短动作间隔
+        post_frame_gap_threshold = 0.6 * fps * actionGap
+        post_action_frame_threshold = 3.5 * fps * actionGap
             
-        start_frame_list, end_frame_list, frame_gap_list, duration_list = pick_predict_frame_sections(prediction_structure_list, frame_list, normal_frame_gap_threshold, short_frame_gap_threshold, self.im_width, self.im_height, blackBorder=False)
+        start_frame_list, end_frame_list, frame_gap_list, duration_list = pick_predict_frame_sections(prediction_structure_list, frame_list, normal_frame_gap_threshold, short_frame_gap_threshold, total_frames, self.im_width, self.im_height, blackBorder=False)
         print('*'*10)
         adaptive_start_frame_list, adaptive_end_frame_list, adaptive_duration_list = adaptive_frame_sections(start_frame_list, end_frame_list, frame_gap_list, duration_list, normal_frame_gap_threshold, total_frames, fps)
         print('**'*10)
@@ -309,8 +334,8 @@ class VideoBox(QWidget):
         self.cutButton.setText("Cut")
         self.cutButton.setEnabled(False)
 
-        self.stateTextEdit.append("Completed.") 
-        QMessageBox.information(self, "information", "Completed.", QMessageBox.Yes)
+        self.stateTextEdit.append("Cut Completed.") 
+        QMessageBox.about(self, "About", "Cut Completed.")
         self.cutButton.setEnabled(False)
 
         pass
@@ -325,8 +350,8 @@ class VideoBox(QWidget):
             if ret:
 
                 # crop frame
-                print("frame: ", frame.shape)
                 if self.crop:
+                    print("frame: ", frame.shape)
                     frame = frame[:int(frame.shape[0]*0.88),:,:] # (height, width, bytesPerComponent)
                     print("frame: ", frame.shape, type(frame))
 
@@ -339,8 +364,8 @@ class VideoBox(QWidget):
                 elapsed_time = (datetime.datetime.now() - self.start_time).total_seconds()
                 # fps = self.num_frames / elapsed_time
 
-                score_index = np.where(scores>=args.score_thresh)
-                self.scores_list.append({self.num_frames:{'scores':list(scores[scores>=args.score_thresh]), 'boxes':list(boxes[score_index]) } })
+                score_index = np.where(scores>=self.score_thresh)
+                self.scores_list.append({self.num_frames:{'scores':list(scores[scores>=self.score_thresh]), 'boxes':list(boxes[score_index]) } })
 
                 height, width, bytesPerComponent = frame.shape
                 self.im_height, self.im_width = height, width   # update crop size 
@@ -353,7 +378,7 @@ class VideoBox(QWidget):
                 # q_image = QImage(frame.data,  width, height, bytesPerLine, QImage.Format_RGB888)
                 self.frameLabel.setPixmap(QPixmap.fromImage(q_image))
                 
-                print("frames processed: ", self.num_frames, "elapsed time: ", elapsed_time, " scores: ", scores[score_index])  # (100,)
+                # print("frames processed: ", self.num_frames, "elapsed time: ", elapsed_time, " scores: ", scores[score_index])  # (100,)
                 score =  str(scores[score_index][:2])[1:-1]
                 if score == '':
                     score = "0"
@@ -363,8 +388,8 @@ class VideoBox(QWidget):
 
             else:
                 # 判断本地文件播放完毕
-                self.stateTextEdit.append("Completed.")
-                QMessageBox.information(self,'information',"Completed.", QMessageBox.Yes | QMessageBox.Yes)
+                self.stateTextEdit.append("Play Completed.")
+                QMessageBox.about(self,'About',"Play Completed.")
                 self.playReset()
 
                 return 
@@ -377,22 +402,22 @@ class VideoBox(QWidget):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-sth', '--scorethreshold', dest='score_thresh', type=float, default=0.2, help='Score threshold for displaying bounding boxes')
-    parser.add_argument('-fps', '--fps', dest='fps', type=int, default=1, help='Show FPS on detection/display visualization')
-    parser.add_argument( '-src', '--source', dest='video_source', default="", help='Device index of the camera.')
+    parser.add_argument('-sth', '--scorethreshold', dest='score_thresh', type=float, default=0.5, help='Score threshold for displaying bounding boxes')
+    parser.add_argument('-src', '--source', dest='video_source', default="", help='Device index of the camera.')
     parser.add_argument('-wd', '--width',dest='width', type=int, default=720, help='Width of the frames in the video stream.')
     parser.add_argument( '-ht', '--height', dest='height', type=int, default=540, help='Height of the frames in the video stream.')
     parser.add_argument('-ds', '--display', dest='display', type=int, default=1, help='Display the detected images using OpenCV. This reduces FPS')
     parser.add_argument('-num-w', '--num-workers', dest='num_workers', type=int, default=4, help='Number of workers.')
     parser.add_argument( '-q-size', '--queue-size', dest='queue_size', type=int, default=5, help='Size of the queue.')
     parser.add_argument('-crop', '--crop', type=bool, default=False, help='wether crop or not')
+    # parser.add_argument('-fps', '--fps', dest='fps', type=int, default=1, help='Show FPS on detection/display visualization')
     args = parser.parse_args()
 
     app = QtWidgets.QApplication(sys.argv)
     app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     app.setWindowIcon(QIcon('./src/Gear.ico'))
 
-    my = VideoBox(video_url="", cutVideoDir="", crop=args.crop)
+    my = VideoBox(video_url="", cutVideoDir="", score_thresh=args.score_thresh, crop=args.crop)
     my.show()
     sys.exit(app.exec_())
 

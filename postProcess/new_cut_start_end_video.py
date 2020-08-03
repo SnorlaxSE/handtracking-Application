@@ -2,8 +2,11 @@ from postProcess.cut_video_function import *
 import copy
 
 
-def pick_predict_frame_sections(prediction_structure_list, frame_list, normal_frame_gap_threshold, short_frame_gap_threshold, im_width, im_height, blackBorder=False):
-
+def pick_predict_frame_sections(prediction_structure_list, frame_list, normal_frame_gap_threshold, short_frame_gap_threshold, total_frames, im_width, im_height, blackBorder=False):
+    """
+    prediction_structure_list: 被识别出“手部”的帧信息
+    frame_list: 被识别出“手部”的帧序号
+    """
     frame_gap = 0
     last_frame = 0  
     start_frame_list = []
@@ -11,6 +14,7 @@ def pick_predict_frame_sections(prediction_structure_list, frame_list, normal_fr
     frame_gap_list = []
     location_ratio_flag = True
 
+    print(len(prediction_structure_list))
     for i, frame_info_dict in enumerate(prediction_structure_list):
         """
         frame_info_dict: 
@@ -23,6 +27,7 @@ def pick_predict_frame_sections(prediction_structure_list, frame_list, normal_fr
         [58, 59, 64, 65, 66, 69, 70, 72, ..., 1789, 1791, 1792, 1793]
         """
         print("----- {} -----".format(i))
+        print(frame_info_dict)
         for (frame_value, frame_info_value_dict) in frame_info_dict.items():
             
             # scores_list = frame_info_value_dict['scores']
@@ -34,7 +39,7 @@ def pick_predict_frame_sections(prediction_structure_list, frame_list, normal_fr
             current_frame = frame_value
             # print("current_frame: ", current_frame)
             frame_gap = float(current_frame) - float(last_frame)
-            print("current_frame -- frame_gap: {} -- {}".format(current_frame, frame_gap))
+            print(f"current_frame: {current_frame}  frame_gap: {frame_gap}")
 
             bbox_y = im_height  
 
@@ -87,7 +92,6 @@ def pick_predict_frame_sections(prediction_structure_list, frame_list, normal_fr
                 start_frame_list.append(frame_list[i])
                 frame_gap_list.append(frame_gap)
                 print('---', '细间断')
-                # pdb.set_trace()
                 continue
             print("The bottom part frame.")
             location_ratio_flag = True  # 帧图像 底部
@@ -111,6 +115,13 @@ def pick_predict_frame_sections(prediction_structure_list, frame_list, normal_fr
         
         print('-'*10)
 
+    if len(end_frame_list) < len(start_frame_list):
+        end_frame_list.append(total_frames-1)
+        
+    print("len(start_frame_list):", len(start_frame_list), start_frame_list)  # 20 
+    print("len(end_frame_list):", len(end_frame_list), end_frame_list)  # 20 
+    print("len(frame_gap_list):", len(frame_gap_list)) # 19
+
     duration_list = []
     for i in range(len(start_frame_list)):
         print("({}) {} {} {}".format(i+1, start_frame_list[i], end_frame_list[i], float(end_frame_list[i]) - float(start_frame_list[i])))
@@ -118,10 +129,7 @@ def pick_predict_frame_sections(prediction_structure_list, frame_list, normal_fr
             print('-'*10, '0')
         duration_list.append(float(end_frame_list[i]) - float(start_frame_list[i]))
 
-    # print("len(start_frame_list):", len(start_frame_list))  # 20 
-    # print("len(end_frame_list):", len(end_frame_list))  # 20 
-    # print("len(frame_gap_list):", len(frame_gap_list)) # 19
-    # print("len(duration_list):", len(duration_list))  # 20
+    print("len(duration_list):", len(duration_list))  # 20
 
     return start_frame_list, end_frame_list, frame_gap_list, duration_list
 

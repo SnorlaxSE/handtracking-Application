@@ -165,13 +165,21 @@ class VideoBox(QWidget):
 
                 # Set crop_rate
                 def set_crop_frame():
-                    crop_rate, ok = QInputDialog.getText(self, 'Advanced', "预估裁剪比例，0-1，如'0.8':")
+                    crop_rate, ok = QInputDialog.getText(self, 'Advanced', "预估裁剪比例，0-1，如 '0.8':")
                     print(crop_rate, ok)
-                    crop_rate = float(crop_rate)
-                    if  0 >= crop_rate or crop_rate > 1:
-                        set_crop_frame()
-                    else:
-                        self.crop_rate = crop_rate
+                    if ok:
+
+                        try:
+                            crop_rate = float(crop_rate)
+
+                            if  0 >= crop_rate or crop_rate > 1:
+                                set_crop_frame()
+                            else:
+                                self.crop_rate = crop_rate
+
+                        except:
+                            set_crop_frame()
+
                 
                 set_crop_frame()
             else:
@@ -373,9 +381,9 @@ class VideoBox(QWidget):
 
                 # crop frame
                 if self.crop:
-                    print("frame: ", frame.shape)
+                    # print("frame: ", frame.shape)
                     frame = frame[:int(frame.shape[0]*self.crop_rate),:,:] # (height, width, bytesPerComponent)
-                    print("frame: ", frame.shape, type(frame))
+                    # print("frame: ", frame.shape, type(frame))
 
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 

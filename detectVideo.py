@@ -27,13 +27,14 @@ class VideoBox(QWidget):
     STATUS_PLAYING = 1
     STATUS_PAUSE = 2
 
-    def __init__(self, video_url="", cutVideoDir="", score_thresh=0.5, crop=False, fps=25):
+    def __init__(self, video_url="", cutVideoDir="", score_thresh=0.5, fps=25, crop=False, crop_rate=0.8):
 
         super(VideoBox, self).__init__()
         self.playCaptureState = False
         self.video_url = video_url
         self.status = self.STATUS_INIT  # 0: INIT 1:PLAYING 2: PAUSE
         self.crop=crop  # 如果视频中放下的手仍出现在视野中，crop=True
+        self.crop_rate = crop_rate
         self.playCapture = cv2.VideoCapture()
 
         self.scores_list = []
@@ -147,12 +148,34 @@ class VideoBox(QWidget):
 
         if not self.video_url == "" and os.path.isfile(self.video_url):  # ""为用户点击取消（cancel）
 
+            # Set score_thresh
             clothes_type, ok = QInputDialog.getText(self, 'Advanced', "演示者穿'短袖' or '长袖':")
             print(clothes_type, ok)
             if "长" in clothes_type:
                 self.score_thresh = 0.2
             else:
                 self.score_thresh = 0.4
+            
+            # Set crop
+            
+            crop_info, ok = QInputDialog.getText(self, 'Advanced', "演示者手腕处是否始终出现在画面: 'True' or 'False'")
+            print(crop_info, ok)
+            if "true" in crop_info.lower():
+                self.crop = True
+
+                # Set crop_rate
+                def set_crop_frame():
+                    crop_rate, ok = QInputDialog.getText(self, 'Advanced', "预估裁剪比例，0-1，如'0.8':")
+                    print(crop_rate, ok)
+                    crop_rate = float(crop_rate)
+                    if  0 >= crop_rate or crop_rate > 1:
+                        set_crop_frame()
+                    else:
+                        self.crop_rate = crop_rate
+                
+                set_crop_frame()
+            else:
+                self.crop = False
 
             # Reset Something
             self.stateTextEdit.setText("Waiting for detectiong...")
@@ -256,7 +279,6 @@ class VideoBox(QWidget):
                 return
 
         # print("self.cutVideoDir: ", self.cutVideoDir)
-
         video_name = os.path.basename(self.srcVideo)
 
         # self.cutVideoDir = os.path.join('outputs', video_name)
@@ -284,7 +306,7 @@ class VideoBox(QWidget):
 
         import platform
         if platform.system() == "Windows":
-            os.system(f"start explorer {self.cutVideoDir}")   
+            os.system(f"start  {self.cutVideoDir}")   
         elif platform.system() == "Linux":
             os.system(f"nautilus {self.cutVideoDir}")   
         elif platform.system() == "Darwin":
@@ -352,7 +374,7 @@ class VideoBox(QWidget):
                 # crop frame
                 if self.crop:
                     print("frame: ", frame.shape)
-                    frame = frame[:int(frame.shape[0]*0.88),:,:] # (height, width, bytesPerComponent)
+                    frame = frame[:int(frame.shape[0]*self.crop_rate),:,:] # (height, width, bytesPerComponent)
                     print("frame: ", frame.shape, type(frame))
 
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)

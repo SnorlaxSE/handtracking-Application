@@ -1,5 +1,7 @@
 # handtracking-Application
 
+> Cut gesture language Video
+
 ### Download
 
 #### Linux or Mac OS

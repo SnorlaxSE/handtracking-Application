@@ -1,6 +1,6 @@
 # handtracking-Application
 
-> Cut gesture language Video
+**Cut gesture language Video**
 
 ### Download
 
